@@ -1,0 +1,499 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="Request school records from the Office of the Registrar, Cabiao Senior High School, and track your request online.">
+<title>Student Clearance Document Request System — Cabiao Senior High School</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600&family=Source+Serif+4:wght@600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com/3.4.17"></script>
+<script>
+  tailwind.config = {
+    theme: { extend: {
+      fontFamily: { sans: ['Public Sans', 'sans-serif'], serif: ['Source Serif 4', 'serif'] },
+      colors: { ink: '#123B20', brand: '#1B6B31', gold: '#F2C500', paper: '#F4F6DC', ok: '#1E7A4F', wait: '#B26B00', bad: '#B3261E' },
+    } },
+  };
+</script>
+<link rel="stylesheet" href="/styles.css">
+</head>
+<body class="text-ink font-sans min-h-screen">
+
+<!-- ============ STAFF LOG IN ============ -->
+<div id="auth" class="hidden fixed inset-0 z-50 overflow-y-auto grid place-items-center p-4 auth-backdrop">
+  <div class="w-full max-w-md py-6">
+    <div class="text-center mb-5">
+      <img src="/assets/school-seal.png" alt="Cabiao National Senior High School seal" class="w-24 h-24 mx-auto mb-3 rounded-full bg-white p-1 object-contain">
+      <h1 class="font-serif text-2xl leading-snug">Staff log in</h1>
+      <p class="text-sm text-ink/70">Student Clearance Document Request System &middot; Cabiao Senior High School</p>
+    </div>
+
+    <div class="bg-white border border-ink/15 rounded-md p-6 shadow-sm">
+      <button type="button" id="google-btn" class="w-full flex items-center justify-center gap-3 border border-ink/30 rounded py-2 font-medium hover:bg-paper">
+        <span class="font-bold text-lg text-[#4285F4]" aria-hidden="true">G</span>
+        <span>Continue with Google</span>
+      </button>
+
+      <div class="flex items-center gap-3 my-4 text-xs text-ink/50">
+        <span class="flex-1 h-px bg-ink/15"></span>
+        <span>or use your mobile number</span>
+        <span class="flex-1 h-px bg-ink/15"></span>
+      </div>
+
+      <form id="auth-form" class="space-y-3" novalidate>
+        <div id="phone-step">
+          <label for="auth-phone" class="block text-sm font-medium mb-1">Mobile number</label>
+          <div class="flex">
+            <span class="px-3 py-2 border border-r-0 border-ink/30 rounded-l bg-paper text-sm">+63</span>
+            <input id="auth-phone" inputmode="tel" autocomplete="tel-national" placeholder="9XX XXX XXXX" class="flex-1 min-w-0 border border-ink/30 rounded-r px-3 py-2">
+          </div>
+        </div>
+        <div id="otp-step" class="hidden">
+          <label for="auth-otp" class="block text-sm font-medium mb-1">6-digit code</label>
+          <input id="auth-otp" inputmode="numeric" maxlength="6" autocomplete="one-time-code" class="w-full border border-ink/30 rounded px-3 py-2 tracking-widest">
+          <p id="otp-hint" class="text-xs text-ink/70 mt-1"></p>
+          <button type="button" id="otp-back" class="text-sm text-brand underline mt-1">Use a different number</button>
+        </div>
+        <p id="auth-msg" role="alert" class="text-sm"></p>
+        <button id="auth-submit" class="w-full bg-brand text-white py-2 rounded font-medium">Send code</button>
+      </form>
+
+      <button type="button" id="auth-cancel" class="mt-4 text-sm underline text-ink/70">Back to the website</button>
+    </div>
+
+    <div class="bg-paper/80 border border-ink/15 rounded-md px-4 py-3 mt-4 text-xs text-ink/70 leading-relaxed text-center">
+      <p>Staff accounts are added by the Registrar.</p>
+      <p><b>Demo:</b> 0917 000 0002 (registrar). The code is always <b>123456</b>.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ============ GOOGLE ACCOUNT PICKER (DEMO) ============ -->
+<div id="google-modal" class="hidden fixed inset-0 z-[60] bg-ink/60 grid place-items-center p-4" role="dialog" aria-modal="true" aria-labelledby="g-title">
+  <div class="bg-white rounded-md p-6 w-full max-w-sm">
+    <h2 id="g-title" class="font-serif text-xl mb-1">Choose a Google account</h2>
+    <p class="text-xs text-ink/60 mb-3">Demo only. In the live system this is Google&rsquo;s own sign-in window.</p>
+
+    <div class="space-y-2 mb-3">
+      <button type="button" onclick="googlePick('registrar@cshs.edu.ph')" class="w-full text-left border border-ink/20 rounded px-3 py-2 hover:bg-paper">
+        <span class="font-medium block">Registrar (demo)</span>
+        <span class="text-xs text-ink/60">registrar@cshs.edu.ph</span>
+      </button>
+    </div>
+
+    <label for="g-other" class="block text-sm font-medium mb-1">Or type another Gmail</label>
+    <div class="flex gap-2">
+      <input id="g-other" type="email" placeholder="name@gmail.com" class="flex-1 min-w-0 border border-ink/30 rounded px-3 py-2">
+      <button type="button" onclick="googlePick(document.getElementById('g-other').value)" class="px-4 py-2 rounded bg-brand text-white font-medium">Continue</button>
+    </div>
+    <p id="g-error" class="text-bad text-sm mt-2" role="alert"></p>
+    <button type="button" onclick="document.getElementById('google-modal').classList.add('hidden')" class="mt-3 text-sm underline text-ink/70">Cancel</button>
+  </div>
+</div>
+
+<!-- ============ APP SHELL ============ -->
+<div id="app" class="flex flex-col md:flex-row min-h-screen">
+
+  <aside class="md:w-60 bg-ink text-white p-5 md:min-h-screen border-b-4 md:border-b-0 md:border-r-4 border-gold">
+    <div class="flex items-center gap-3 mb-8">
+      <img src="/assets/school-seal.png" alt="Cabiao National Senior High School seal" class="w-14 h-14 rounded-full bg-white p-0.5 object-contain shrink-0">
+      <div class="font-serif text-base leading-snug">
+        Student Clearance Document Request System
+        <span class="block text-xs font-sans text-white/70 mt-1">Cabiao Senior High School</span>
+      </div>
+    </div>
+
+    <nav class="flex md:flex-col gap-2 overflow-x-auto pb-1" aria-label="Views">
+      <button data-view="request"       class="nav text-left px-3 py-2 rounded hover:bg-white/10 whitespace-nowrap">Request a document</button>
+      <button data-view="track"         class="nav text-left px-3 py-2 rounded hover:bg-white/10 whitespace-nowrap">Track my request</button>
+      <button data-view="registrar"     class="nav text-left px-3 py-2 rounded hover:bg-white/10 whitespace-nowrap">Registrar review</button>
+      <button data-view="fulfillment"   class="nav text-left px-3 py-2 rounded hover:bg-white/10 whitespace-nowrap">Pick-ups</button>
+      <button data-view="accounts"      class="nav text-left px-3 py-2 rounded hover:bg-white/10 whitespace-nowrap">Manage accounts</button>
+      <button data-view="notifications" class="nav text-left px-3 py-2 rounded hover:bg-white/10 whitespace-nowrap">Notifications <span id="nav-badge" class="hidden ml-1 bg-gold text-ink text-xs font-medium rounded-full px-2 py-0.5">0</span></button>
+      <button data-view="about"         class="nav text-left px-3 py-2 rounded hover:bg-white/10 whitespace-nowrap">About us</button>
+    </nav>
+
+    <div class="mt-6 md:mt-10 border-t border-white/15 pt-4 text-sm">
+      <div id="staff-chip" class="hidden">
+        <div id="user-name" class="font-medium"></div>
+        <div id="user-role" class="text-xs text-white/70 mb-2"></div>
+        <button id="logout" class="underline text-white/80 hover:text-white">Log out</button>
+      </div>
+      <button id="staff-login-btn" class="w-full text-left px-3 py-2 rounded border border-white/30 hover:bg-white/10">Staff log in</button>
+    </div>
+
+    <p class="hidden md:block mt-10 text-xs text-white/60">Records are saved on the school&rsquo;s server.</p>
+  </aside>
+
+  <main class="flex-1 p-5 md:p-10 max-w-5xl">
+    <div class="rounded-md bg-ink text-white px-6 py-5 mb-8 border-b-4 border-gold shadow-sm">
+      <p class="font-serif text-xl">Cabiao Senior High School</p>
+      <p class="text-sm text-white/75">Office of the Registrar &middot; Student Clearance Document Request System</p>
+    </div>
+
+    <!-- ============ REQUEST A DOCUMENT ============ -->
+    <section id="view-request" class="view">
+      <h1 class="font-serif text-3xl mb-1">Request a document</h1>
+      <p class="text-ink/70 mb-6">No account needed. Find your record with your LRN, or with your name if you forgot it.</p>
+
+      <div id="find-card" class="bg-white border border-ink/15 rounded-md p-5 mb-5">
+        <p class="font-medium mb-2">How do you want to find your record?</p>
+        <div class="grid sm:grid-cols-2 gap-3 mb-4">
+          <label class="choice flex items-start gap-3 border border-ink/20 rounded p-3 cursor-pointer border-brand bg-paper ring-1 ring-brand">
+            <input type="radio" name="find" value="lrn" class="mt-1" checked>
+            <span><span class="font-medium block">I know my LRN</span><span class="text-xs text-ink/60">Enter your 12-digit Learner Reference Number.</span></span>
+          </label>
+          <label class="choice flex items-start gap-3 border border-ink/20 rounded p-3 cursor-pointer">
+            <input type="radio" name="find" value="name" class="mt-1">
+            <span><span class="font-medium block">I forgot my LRN</span><span class="text-xs text-ink/60">Find your record with your name instead.</span></span>
+          </label>
+        </div>
+
+        <div id="find-lrn">
+          <label for="lrn" class="block font-medium mb-1">Learner Reference Number (LRN)</label>
+          <div class="flex gap-2">
+            <input id="lrn" inputmode="numeric" maxlength="12" placeholder="12 digits" class="flex-1 min-w-0 border border-ink/30 rounded px-3 py-2">
+            <button type="button" id="lookup" class="bg-brand text-white px-4 py-2 rounded font-medium whitespace-nowrap">Find my record</button>
+          </div>
+        </div>
+
+        <div id="find-name" class="hidden">
+          <div class="grid sm:grid-cols-2 gap-3">
+            <div><label for="fn-first" class="block text-sm font-medium mb-1">First name</label><input id="fn-first" class="w-full border border-ink/30 rounded px-3 py-2"></div>
+            <div><label for="fn-last" class="block text-sm font-medium mb-1">Last name</label><input id="fn-last" class="w-full border border-ink/30 rounded px-3 py-2"></div>
+            <div><label for="fn-middle" class="block text-sm font-medium mb-1">Middle name (optional)</label><input id="fn-middle" class="w-full border border-ink/30 rounded px-3 py-2"></div>
+            <div>
+              <label for="fn-strand" class="block text-sm font-medium mb-1">Strand (optional)</label>
+              <select id="fn-strand" class="w-full border border-ink/30 rounded px-3 py-2">
+                <option value="">Any strand</option><option>STEM</option><option>ABM</option><option>HUMSS</option><option>TVL</option>
+              </select>
+            </div>
+            <div><label for="fn-year" class="block text-sm font-medium mb-1">Year graduated (optional)</label><input id="fn-year" inputmode="numeric" maxlength="4" placeholder="e.g. 2024" class="w-full border border-ink/30 rounded px-3 py-2"></div>
+          </div>
+          <button type="button" id="find-name-go" class="mt-3 bg-brand text-white px-4 py-2 rounded font-medium">Find my record</button>
+          <p class="text-xs text-ink/60 mt-2">For privacy, we show only the last 4 digits of the LRN.</p>
+        </div>
+
+        <p id="lookup-msg" class="text-sm mt-2" role="status"></p>
+        <ul id="find-results" class="hidden space-y-2 mt-3"></ul>
+        <dl id="profile" class="hidden grid grid-cols-2 gap-x-6 gap-y-2 mt-4 text-sm border-t border-ink/10 pt-4"></dl>
+
+        <div id="manual" class="hidden mt-4 border-t border-ink/10 pt-4">
+          <p id="manual-title" class="font-medium mb-2">We could not find that LRN. Enter your details instead.</p>
+          <div class="grid sm:grid-cols-2 gap-3">
+            <input name="first_name" placeholder="First name" aria-label="First name" class="border border-ink/30 rounded px-3 py-2">
+            <input name="last_name" placeholder="Last name" aria-label="Last name" class="border border-ink/30 rounded px-3 py-2">
+            <input name="middle_name" placeholder="Middle name" aria-label="Middle name" class="border border-ink/30 rounded px-3 py-2">
+            <select name="strand" aria-label="Strand" class="border border-ink/30 rounded px-3 py-2">
+              <option value="">Strand</option><option>STEM</option><option>ABM</option><option>HUMSS</option><option>TVL</option>
+            </select>
+            <input name="year_graduated" inputmode="numeric" placeholder="Year graduated" aria-label="Year graduated" class="border border-ink/30 rounded px-3 py-2">
+          </div>
+          <p class="text-xs text-ink/60 mt-2">Manually entered records are checked by the Registrar before processing.</p>
+        </div>
+      </div>
+
+      <form id="request-form" class="bg-white border border-ink/15 rounded-md p-5 space-y-4" novalidate>
+        <div>
+          <label for="doctype" class="block font-medium mb-1">Document</label>
+          <select id="doctype" class="w-full border border-ink/30 rounded px-3 py-2">
+            <option value="form137_sf10">Form 137 / SF10</option>
+            <option value="good_moral">Good Moral Certificate</option>
+            <option value="clearance">School Clearance</option>
+            <option value="report_card">Report Card / Transcript</option>
+          </select>
+        </div>
+
+        <div>
+          <label for="req-email" class="block font-medium mb-1">Gmail</label>
+          <div class="flex gap-2">
+            <input id="req-email" type="email" autocomplete="email" placeholder="name@gmail.com" class="flex-1 min-w-0 border border-ink/30 rounded px-3 py-2">
+            <button type="button" id="email-send" class="px-4 py-2 rounded border border-brand text-brand font-medium whitespace-nowrap">Send code</button>
+          </div>
+          <div id="email-code-wrap" class="hidden mt-2 flex gap-2">
+            <input id="email-code" inputmode="numeric" maxlength="6" autocomplete="one-time-code" placeholder="6-digit code from your Gmail" class="flex-1 min-w-0 border border-ink/30 rounded px-3 py-2">
+            <button type="button" id="email-verify" class="bg-brand text-white px-4 py-2 rounded font-medium">Verify</button>
+          </div>
+          <p id="email-msg" class="text-sm mt-1" role="status"></p>
+          <p class="text-xs text-ink/60 mt-1">Your tracking number and every update about your request (approved, rejected, ready for pick-up) are sent to this Gmail. Use one you can open.</p>
+        </div>
+
+        <div>
+          <label for="req-phone" class="block font-medium mb-1">Mobile number (optional)</label>
+          <input id="req-phone" inputmode="tel" placeholder="0917 123 4567" class="w-full border border-ink/30 rounded px-3 py-2">
+          <p class="text-xs text-ink/60 mt-1">Only so the Registrar&rsquo;s Office can call you if needed. We do not send SMS.</p>
+        </div>
+
+        <div class="border-t border-ink/10 pt-4">
+          <label for="purpose" class="block font-medium mb-1">Request purpose</label>
+          <select id="purpose" class="w-full border border-ink/30 rounded px-3 py-2">
+            <option value="">Select the purpose</option>
+            <option value="employment">For Employment</option>
+            <option value="university">For University</option>
+            <option value="military">For Military</option>
+            <option value="others">Others (please specify)</option>
+          </select>
+          <div id="purpose-other-wrap" class="hidden mt-3">
+            <label for="purpose-other" class="block text-sm font-medium mb-1">Please specify the purpose</label>
+            <input id="purpose-other" class="w-full border border-ink/30 rounded px-3 py-2">
+          </div>
+        </div>
+
+        <div id="employment-wrap" class="hidden">
+          <p class="font-medium mb-2">Is the employment local or abroad?</p>
+          <div class="grid sm:grid-cols-2 gap-3">
+            <label class="choice flex items-start gap-3 border border-ink/20 rounded p-3 cursor-pointer"><input type="radio" name="emp" value="local" class="mt-1"><span class="font-medium">Local</span></label>
+            <label class="choice flex items-start gap-3 border border-ink/20 rounded p-3 cursor-pointer"><input type="radio" name="emp" value="abroad" class="mt-1"><span class="font-medium">Abroad</span></label>
+          </div>
+          <div id="emp-id-wrap" class="hidden mt-3">
+            <label for="id-type" class="block font-medium mb-1">Government ID</label>
+            <p class="text-xs text-ink/60 mb-1">This is your evidence for employment. Choose the type of government ID, then upload it. You do not need to upload anything else.</p>
+            <select id="id-type" class="w-full border border-ink/30 rounded px-3 py-2"></select>
+            <label for="valid-id" class="block text-sm font-medium mt-3 mb-1">Upload a photo or PDF of the ID</label>
+            <input id="valid-id" type="file" accept="image/*,.pdf" class="w-full text-sm">
+          </div>
+        </div>
+
+        <div id="university-wrap" class="hidden">
+          <label for="university-name" class="block font-medium mb-1">Name of the university or school that is requesting your documents</label>
+          <input id="university-name" placeholder="Name of the university" class="w-full border border-ink/30 rounded px-3 py-2">
+        </div>
+
+        <div id="proof-wrap" class="hidden">
+          <label for="proof-file" id="proof-label" class="block font-medium mb-1"></label>
+          <p class="text-xs text-ink/60 mb-1">Upload a photo or PDF. This is the evidence that the request really came from them.</p>
+          <input id="proof-file" type="file" accept="image/*,.pdf" class="w-full text-sm">
+        </div>
+
+        <div class="border-t border-ink/10 pt-4">
+          <p class="font-medium mb-1">Claiming your document</p>
+          <p class="text-sm text-ink/70 mb-3">You pick up your document at the school&rsquo;s Registrar&rsquo;s Office. We tell you when it is ready.</p>
+          <div id="disclaimer-box"></div>
+
+          <fieldset class="mt-4">
+            <legend class="font-medium mb-2">Who will claim the document?</legend>
+            <div class="grid sm:grid-cols-2 gap-3">
+              <label class="choice flex items-start gap-3 border border-ink/20 rounded p-3 cursor-pointer">
+                <input type="radio" name="claimer" value="self" class="mt-1" checked>
+                <span><span class="font-medium block">I will claim it myself</span><span class="text-xs text-ink/60">Bring your tracking number and valid ID.</span></span>
+              </label>
+              <label class="choice flex items-start gap-3 border border-ink/20 rounded p-3 cursor-pointer">
+                <input type="radio" name="claimer" value="rep" class="mt-1">
+                <span><span class="font-medium block">Someone else will claim it for me</span><span class="text-xs text-ink/60">Fill up the authorization letter.</span></span>
+              </label>
+            </div>
+          </fieldset>
+
+          <div id="rep-letter" class="hidden mt-4 space-y-4">
+            <div>
+              <p class="font-medium">Authorization letter</p>
+              <p class="text-xs text-ink/60 mb-2">Fill up the blanks in the letter. It is saved with your request, and the Registrar&rsquo;s Office sees who will claim your document.</p>
+              <div class="bg-white border border-ink/30 rounded p-5 font-serif text-sm leading-[2.4] shadow-sm">
+                <p class="text-center font-bold mb-2">AUTHORIZATION LETTER</p>
+                <p class="text-right">Date: <span id="au-date"></span></p>
+                <p class="leading-relaxed mt-2">To the Registrar,<br>Cabiao Senior High School</p>
+                <p class="mt-2">I, <b id="au-learner"></b> (LRN <span id="au-lrn"></span>), authorize
+                  <input id="au-name" aria-label="Full name of the person who will claim" placeholder="full name of the person who will claim" class="inline-input w-64 max-w-full">
+                  (my <input id="au-rel" aria-label="Relationship to you" placeholder="relationship, e.g. Mother" class="inline-input w-44 max-w-full">)
+                  to claim my <b id="au-doc"></b> (Tracking No. <b>given after you submit</b>) because
+                  <input id="au-reason" aria-label="Reason" placeholder="reason (optional)" class="inline-input w-64 max-w-full">.</p>
+                <p class="mt-2">My representative will show their
+                  <input id="au-idtype" aria-label="ID the representative will show" placeholder="ID, e.g. Driver&rsquo;s License" class="inline-input w-56 max-w-full">
+                  and can be reached at <input id="au-phone" inputmode="tel" aria-label="Mobile number of the representative" placeholder="mobile number (optional)" class="inline-input w-48 max-w-full">.
+                  A photocopy of my valid ID is attached.</p>
+                <div class="mt-6 w-72 max-w-full">
+                  <input id="au-sign" aria-label="Type your full name as your signature" placeholder="type your full name here" class="inline-input w-full italic text-lg">
+                  <p class="text-xs mt-1 font-sans leading-normal">Signature over printed name of the learner</p>
+                </div>
+              </div>
+              <label class="flex items-start gap-2 text-sm mt-3"><input type="checkbox" id="au-confirm" class="mt-1"><span>I confirm that I am authorizing this person to claim my document.</span></label>
+            </div>
+
+            <div class="rounded border border-ink/20 p-4">
+              <label for="au-photo" class="block font-medium mb-1">Photo of the person who will claim the document</label>
+              <p class="text-xs text-ink/60 mb-2">Upload a clear photo of their face (a selfie works). The Registrar compares it with the person who comes to claim the document, so they know it is really them. It is used only for this.</p>
+              <input id="au-photo" type="file" accept="image/*" class="w-full text-sm">
+              <div id="au-photo-preview" class="mt-2"></div>
+            </div>
+          </div>
+        </div>
+
+        <button id="submit-request" class="bg-brand text-white px-5 py-2 rounded font-medium disabled:opacity-60">Submit request</button>
+        <p id="submit-msg" class="text-sm" role="status"></p>
+        <div id="tracking-card"></div>
+      </form>
+    </section>
+
+    <!-- ============ TRACK MY REQUEST ============ -->
+    <section id="view-track" class="view hidden">
+      <h1 class="font-serif text-3xl mb-1">Track my request</h1>
+      <p class="text-ink/70 mb-6">Enter the tracking number you got when you submitted your request. No account needed.</p>
+
+      <div class="bg-white border border-ink/15 rounded-md p-5 mb-5">
+        <label for="track-no" class="block font-medium mb-1">Tracking number</label>
+        <div class="flex gap-2">
+          <input id="track-no" placeholder="CSHS-XXXX-XXXX" autocapitalize="characters" class="flex-1 min-w-0 border border-ink/30 rounded px-3 py-2 uppercase">
+          <button id="track-go" class="bg-brand text-white px-4 py-2 rounded font-medium">Track</button>
+        </div>
+        <p id="track-msg" class="text-sm mt-2" role="status"></p>
+      </div>
+      <ul id="track-list" class="space-y-3"></ul>
+    </section>
+
+    <!-- ============ REGISTRAR REVIEW ============ -->
+    <section id="view-registrar" class="view hidden">
+      <h1 class="font-serif text-3xl mb-1">Registrar review</h1>
+      <p class="text-ink/70 mb-6 max-w-3xl">Pressing Approve opens the uploaded documents (the valid ID for employment, or the proof for a university or the military) for a quick check, then approves. You can also open View documents any time.</p>
+
+      <div class="bg-white border border-ink/15 rounded-md overflow-x-auto">
+        <table class="w-full text-sm">
+          <thead class="text-left border-b border-ink/15"><tr>
+            <th class="p-3">Learner</th><th class="p-3">Document</th><th class="p-3">Purpose</th><th class="p-3">Who will claim</th><th class="p-3">Documents</th><th class="p-3">Status</th><th class="p-3">Action</th>
+          </tr></thead>
+          <tbody id="review-rows"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ============ MANAGE ACCOUNTS ============ -->
+    <section id="view-accounts" class="view hidden">
+      <h1 class="font-serif text-3xl mb-1">Manage accounts</h1>
+      <p class="text-ink/70 mb-6 max-w-2xl">Add the administrative assistants, principal and registrars who use this system. They log in with the mobile number or Gmail you enter here. Students do not need an account.</p>
+
+      <form id="staff-form" class="bg-white border border-ink/15 rounded-md p-5 mb-5 grid sm:grid-cols-2 gap-3" novalidate>
+        <div><label for="staff-name" class="block text-sm font-medium mb-1">Full name</label>
+          <input id="staff-name" class="w-full border border-ink/30 rounded px-3 py-2"></div>
+        <div><label for="staff-role" class="block text-sm font-medium mb-1">Role</label>
+          <select id="staff-role" class="w-full border border-ink/30 rounded px-3 py-2">
+            <option value="admin_assistant">Administrative assistant</option>
+            <option value="principal">Principal</option>
+            <option value="registrar">Registrar</option>
+          </select></div>
+        <div><label for="staff-phone" class="block text-sm font-medium mb-1">Mobile number</label>
+          <input id="staff-phone" inputmode="tel" placeholder="0917 123 4567" class="w-full border border-ink/30 rounded px-3 py-2"></div>
+        <div><label for="staff-email" class="block text-sm font-medium mb-1">Gmail</label>
+          <input id="staff-email" type="email" placeholder="name@gmail.com" class="w-full border border-ink/30 rounded px-3 py-2"></div>
+        <div class="sm:col-span-2 flex flex-wrap items-center gap-3">
+          <button class="bg-brand text-white px-5 py-2 rounded font-medium">Add account</button>
+          <p id="staff-msg" role="status" class="text-sm"></p>
+        </div>
+      </form>
+
+      <div class="bg-white border border-ink/15 rounded-md overflow-x-auto">
+        <table class="w-full text-sm">
+          <thead class="text-left border-b border-ink/15"><tr>
+            <th class="p-3">Name</th><th class="p-3">Role</th><th class="p-3">Mobile</th><th class="p-3">Gmail</th><th class="p-3">Status</th><th class="p-3">Action</th>
+          </tr></thead>
+          <tbody id="staff-rows"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ============ PICK-UPS ============ -->
+    <section id="view-fulfillment" class="view hidden">
+      <h1 class="font-serif text-3xl mb-1">Pick-ups</h1>
+      <p class="text-ink/70 mb-6 max-w-2xl">Approved requests appear here. Mark a request Ready for pick-up when the signed document is ready, then Claimed when it is released. The student is notified at each step.</p>
+
+      <div class="bg-white border border-ink/15 rounded-md overflow-x-auto">
+        <table class="w-full text-sm">
+          <thead class="text-left border-b border-ink/15"><tr>
+            <th class="p-3">Learner</th><th class="p-3">Purpose</th><th class="p-3">Who will claim</th><th class="p-3">Status</th><th class="p-3">Action</th>
+          </tr></thead>
+          <tbody id="ful-rows"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ============ NOTIFICATIONS ============ -->
+    <section id="view-notifications" class="view hidden">
+      <h1 class="font-serif text-3xl mb-1">Notifications</h1>
+      <p class="text-ink/70 mb-6 max-w-2xl">Every update also goes to the account you log in with: your Gmail if you use Google, or your mobile number by SMS.</p>
+      <ul id="inbox-list" class="space-y-3"></ul>
+    </section>
+
+    <!-- ============ ABOUT US ============ -->
+    <section id="view-about" class="view hidden">
+      <h1 class="font-serif text-3xl mb-1">About us</h1>
+      <p class="text-ink/70 mb-6 max-w-2xl">The Student Clearance Document Request System is the official way to request school records from Cabiao Senior High School, without lining up at the Registrar&rsquo;s Office.</p>
+
+      <div class="grid md:grid-cols-2 gap-5 mb-5">
+        <div class="bg-white border border-ink/15 rounded-md p-5">
+          <h2 class="font-serif text-xl mb-2">What this system is for</h2>
+          <p class="text-sm leading-relaxed">Current students and alumni can request Form 137 / SF10, Good Moral Certificates, School Clearances and Report Cards online. Each request has a purpose: employment (local or abroad), university, military or other. Employment needs only your valid ID as evidence. For a university you give its name, and for the military you upload proof from the office or unit. The Registrar&rsquo;s Office reviews it before release.</p>
+        </div>
+        <div class="bg-white border border-ink/15 rounded-md p-5">
+          <h2 class="font-serif text-xl mb-2">Getting your document</h2>
+          <p class="text-sm leading-relaxed">Every request gets a tracking number as soon as you submit it. Use it in Track my request to see if it is on-going or ready for pick-up, then claim your signed document at the Registrar&rsquo;s Office.</p>
+        </div>
+      </div>
+
+      <div class="bg-white border border-ink/15 rounded-md p-5 mb-5">
+        <h2 class="font-serif text-xl mb-3">How a request moves</h2>
+        <ol class="space-y-3 text-sm">
+          <li><b>You submit.</b> Enter your LRN, choose a document and pick the purpose. For employment you upload your valid ID as evidence. For a university you give its name and upload proof, and for the military you upload proof from the office or unit. You get your tracking number right away.</li>
+          <li><b>The Registrar reviews.</b> The Registrar checks your uploaded documents, then approves the request or rejects it with a reason you can fix.</li>
+          <li><b>You get notified.</b> You verify your Gmail when you submit, and every update about your request (approved, rejected with the reason, ready for pick-up) is sent there. You can also follow it anytime with your tracking number. When it is ready, pick it up at the Registrar&rsquo;s Office.</li>
+        </ol>
+      </div>
+
+      <div class="bg-white border border-ink/15 rounded-md p-5">
+        <h2 class="font-serif text-xl mb-3">Contact the Registrar&rsquo;s Office</h2>
+        <dl class="grid sm:grid-cols-2 gap-x-6 gap-y-3 text-sm">
+          <div><dt class="text-ink/60">Office</dt><dd class="font-medium">Registrar&rsquo;s Office, Cabiao Senior High School</dd></div>
+          <div><dt class="text-ink/60">Office hours</dt><dd class="font-medium text-ink/50">[Add office hours]</dd></div>
+          <div><dt class="text-ink/60">Phone</dt><dd class="font-medium text-ink/50">[Add contact number]</dd></div>
+          <div><dt class="text-ink/60">Email</dt><dd class="font-medium text-ink/50">[Add school email]</dd></div>
+        </dl>
+      </div>
+    </section>
+  </main>
+</div>
+
+<!-- ============ TOASTS ============ -->
+<div id="toasts" class="fixed top-4 right-4 z-[80] w-[min(22rem,calc(100vw-2rem))] space-y-2" aria-live="polite"></div>
+
+<!-- ============ CHECK THE DOCUMENTS ============ -->
+<div id="id-modal" class="hidden fixed inset-0 z-50 bg-ink/60 grid place-items-center p-4" role="dialog" aria-modal="true" aria-labelledby="id-title">
+  <div class="bg-white rounded-md p-5 w-full max-w-xl max-h-[92vh] overflow-y-auto">
+    <h2 id="id-title" class="font-serif text-xl mb-1">Check the documents</h2>
+    <p id="id-meta" class="text-sm text-ink/70 mb-3"></p>
+    <div id="id-view" class="mb-3"></div>
+    <p id="id-state" class="text-sm text-ok mb-2"></p>
+    <p class="text-sm mb-3">Do the documents look valid, and do they match the learner and the request?</p>
+    <div class="flex flex-wrap justify-end gap-2">
+      <button id="id-close" class="px-4 py-2 rounded border border-ink/30">Close</button>
+      <button id="id-bad" class="px-4 py-2 rounded border border-bad text-bad">Documents are invalid</button>
+      <button id="id-ok" class="px-4 py-2 rounded bg-ok text-white font-medium">Documents are correct</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ REJECT THIS REQUEST ============ -->
+<div id="modal" class="hidden fixed inset-0 z-[60] bg-ink/60 grid place-items-center p-4" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+  <div class="bg-white rounded-md p-6 w-full max-w-md">
+    <h2 id="modal-title" class="font-serif text-xl mb-3">Reject this request</h2>
+    <label for="reason-select" class="block text-sm font-medium mb-1">Reason for rejection</label>
+    <select id="reason-select" class="w-full border border-ink/30 rounded px-3 py-2 mb-3">
+      <option>Documents are invalid</option>
+      <option>Authorization not found</option>
+      <option>Invalid ID</option>
+      <option>Missing or invalid proof of request</option>
+      <option>Unpaid balance</option>
+      <option>Missing clearance</option>
+      <option value="">Other (type below)</option>
+    </select>
+    <textarea id="reason-text" rows="3" placeholder="Add details for the student (optional)" class="w-full border border-ink/30 rounded px-3 py-2"></textarea>
+    <p class="text-xs text-ink/60 mt-1">The student gets this reason in an email to their Gmail and sees it in Track my request.</p>
+    <p id="modal-err" class="text-bad text-sm mt-1" role="alert"></p>
+    <div class="flex justify-end gap-2 mt-4">
+      <button id="modal-cancel" class="px-4 py-2 rounded border border-ink/30">Cancel</button>
+      <button id="modal-confirm" class="px-4 py-2 rounded bg-bad text-white font-medium">Reject request</button>
+    </div>
+  </div>
+</div>
+
+<script src="/app.js" defer></script>
+</body>
+</html>

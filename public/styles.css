@@ -1,0 +1,55 @@
+/* Student Clearance Document Request System — Cabiao Senior High School */
+
+:root { color-scheme: light; }
+
+:focus-visible { outline: 2px solid #1B6B31; outline-offset: 2px; }
+
+body {
+  background: #E4EFCB linear-gradient(165deg, #FBEF9A 0, #F3EFB0 22%, #E2EDBD 52%, #CFE6C6 100%) fixed no-repeat;
+}
+
+/* Faint school seal behind the page. */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background: url("/assets/school-seal.png") center 55% / min(460px, 70vw) no-repeat;
+  opacity: .09;
+}
+
+main, aside { position: relative; z-index: 1; }
+
+.auth-backdrop { background: #E4EFCB linear-gradient(165deg, #FBEF9A 0, #F3EFB0 22%, #E2EDBD 52%, #CFE6C6 100%); }
+
+input, select, textarea {
+  background-color: #fff;
+  color: #10301B;
+  caret-color: #1B6B31;
+  font-weight: 500;
+}
+
+input::placeholder, textarea::placeholder { color: #6F7A62; font-weight: 400; }
+
+input:focus, select:focus, textarea:focus {
+  border-color: #1B6B31;
+  box-shadow: 0 0 0 3px #1B6B3126;
+  outline: none;
+}
+
+/* Blanks in the authorization letter. */
+.inline-input {
+  border: 0 !important;
+  border-bottom: 1px solid #123B20 !important;
+  border-radius: 0 !important;
+  background: #F4F6DC !important;
+  padding: 1px 6px;
+  font-family: inherit;
+  font-weight: 500;
+}
+.inline-input::placeholder { font-style: italic; }
+
+@media (prefers-reduced-motion: reduce) {
+  * { transition: none !important; }
+}
