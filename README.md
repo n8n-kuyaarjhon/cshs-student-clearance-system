@@ -32,6 +32,20 @@ On first run the server creates `data/app.db` and one bootstrap Registrar accoun
 
 **Logging in:** open **Staff log in**. With no SMS gateway configured the server runs in demo mode, so every code is **123456** (it is also shown on screen and printed in the console). Gmail sign-in works the same way: choose the demo Registrar account, or type the email saved on a staff account.
 
+## Deploy
+
+The repository includes a `Dockerfile` and a `render.yaml` blueprint, so it can be hosted on [Render](https://render.com) for free:
+
+1. Sign in to Render with the GitHub account that owns this repository.
+2. Open <https://render.com/deploy?repo=https://github.com/n8n-kuyaarjhon/cshs-student-clearance-system> and approve the blueprint.
+3. Render builds the container and gives you a public `https://….onrender.com` link. Every push to `main` redeploys automatically.
+
+The free plan has **no persistent disk**, so the SQLite database and uploads reset whenever the service restarts or redeploys — fine for a demo, not for real records. For real use, switch the service to a paid instance type, add a disk mounted at `/data`, and keep `DATA_DIR=/data`; data then survives restarts.
+
+The same `Dockerfile` works on Railway, Fly.io, or any Docker host (set `HOST=0.0.0.0`, `PORT` is provided by the platform, and point `DATA_DIR` at a mounted volume).
+
+> A public demo runs in demo mode: the login code is always `123456` and the Registrar account is open to anyone with the link. Do not enter real student data on a public demo.
+
 ## How the rules work (server-side)
 
 Everything below is enforced in `server.js`, not in the browser:

@@ -1,0 +1,18 @@
+services:
+  - type: web
+    name: cshs-clearance-system
+    runtime: docker
+    plan: free
+    region: singapore
+    healthCheckPath: /api/health
+    autoDeploy: true
+    envVars:
+      - key: HOST
+        value: 0.0.0.0
+      - key: DATA_DIR
+        value: /data
+      - key: DEMO_MODE
+        value: "1"
+    # Persistent data (optional, requires a paid instance type):
+    # add a disk mounted at /data and DATA_DIR=/data keeps the database
+    # and uploads across deploys and restarts.

@@ -1,0 +1,9 @@
+.git
+.gitignore
+data
+node_modules
+*.zip
+*.log
+README.md
+test.js
+backup-*
